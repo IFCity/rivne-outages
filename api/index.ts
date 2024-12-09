@@ -1,20 +1,35 @@
 import express from "express";
-import { returnJson } from '../script';
+import axios from 'axios';
+import * as moment from "moment-timezone"
+import * as cheerio from 'cheerio';
+import { transform } from '../transform';
+
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
 
 const app = express();
 
-const http = require('http').Server(app);
+app.get("/api/v1", (req, res) => res.send("RivneOff API Status: OK"));
 
-app.get("/api/v1", (req, res) => res.send("ChernivtsyOff API Status: OK"));
+const URL = "https://www.roe.vsei.ua/disconnections"
 
-app.get("/api/v1/today", async (req, res) => {
-  const result = await returnJson(false);
-  res.status(200).send(result);
-});
+app.get("/api/v1/off", async (req, res) => {
+    try {
+      // Get the HTML from the URL
+      axios.get(URL).then((response) => {
+        // Load the HTML into cheerio
+        const $ = cheerio.load(response.data);
 
-app.get("/api/v1/tomorrow", async (req, res) => {
-  const result = await returnJson(true);
-  res.status(200).send(result);
+        res.send({
+          ...transform($),
+          serverTime: moment.tz("Europe/Kiev").format('DD-MM-YYYY HH:mm'),
+        })
+      })
+        .catch(error => {
+          res.status(500).send(error)
+        })
+    } catch (error) {
+      res.status(500).send(error)
+    }
 });
 
 app.listen(process.env.PORT || 3010, () => console.log(`Server is ready`));
