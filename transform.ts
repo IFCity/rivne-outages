@@ -69,14 +69,16 @@ const addEvents = ($, element, date) => {
       element.children.forEach((el) => {
         const timeRange = $(el).text().split(' - ')
 
-        result.push({
-          date,
-          startTime: timeRange[0],
-          endTime: timeRange[1],
-          electricity: "off",
-          provider: "RIVOE",
-          queue: queueMap[index]
-        })
+        if (timeRange.length === 2) {
+          result.push({
+            date,
+            startTime: timeRange[0],
+            endTime: timeRange[1],
+            electricity: "off",
+            provider: "RIVOE",
+            queue: queueMap[index]
+          })
+        }
       })
     }
   })
